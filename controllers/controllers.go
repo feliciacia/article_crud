@@ -50,6 +50,27 @@ func GetArticle() gin.HandlerFunc {
 	}
 }
 
+func GetArticles() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var art []models.Article
+		result, err := artcollection.Find(context.Background(), bson.M{})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		for result.Next(context.Background()) {
+			var article models.Article
+			if err = result.Decode(&article); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			}
+			art = append(art, article)
+		}
+
+		c.JSON(http.StatusOK, art)
+	}
+}
+
 func UpdateArticle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		artid := c.Param("id")
