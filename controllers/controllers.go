@@ -17,12 +17,10 @@ var artcollection *mongo.Collection = database.GetCollection(database.DB, "artic
 func CreateArticle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var art models.Article
-
 		if err := c.BindJSON(&art); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
 		newArticle := models.Article{
 			ID:      xid.New().String(), //xid for generate unique id
 			Title:   art.Title,
@@ -44,6 +42,35 @@ func GetArticle() gin.HandlerFunc {
 		var art models.Article
 		artid := c.Param("id")
 		err := artcollection.FindOne(context.Background(), bson.M{"_id": artid}).Decode(&art)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, art)
+	}
+}
+
+func UpdateArticle() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		artid := c.Param("id")
+		var input models.Article
+		if err := c.BindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		var art models.Article
+		err := artcollection.FindOne(context.Background(), bson.M{"_id": artid}).Decode(&art)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if input.Title != "" {
+			art.Title = input.Title
+		}
+		if input.Content != "" {
+			art.Content = input.Content
+		}
+		_, err = artcollection.UpdateOne(context.Background(), bson.M{"_id": artid}, bson.M{"$set": art})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
