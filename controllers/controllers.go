@@ -78,3 +78,14 @@ func UpdateArticle() gin.HandlerFunc {
 		c.JSON(http.StatusOK, art)
 	}
 }
+
+func DeleteArticle() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		artid := c.Param("id")
+		_, err := artcollection.DeleteOne(context.Background(), bson.M{"_id": artid})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "succeed"})
+	}
+}
