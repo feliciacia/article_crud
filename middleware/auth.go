@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,9 +8,9 @@ import (
 
 func Authenticate() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		clientToken := c.Request.Header.Get("token")
-		if clientToken == "" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("No authorization header")})
+		clientToken := c.Request.Header.Get("Authorization")
+		if clientToken != "Bearer token" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			c.Abort()
 			return
 		}
